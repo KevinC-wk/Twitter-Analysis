@@ -1,5 +1,5 @@
 import string
-
+import re
 
 # Gets the text, sans links, hashtags, mentions, media, and symbols.
 def get_text_cleaned(tweet):
@@ -38,6 +38,16 @@ def get_text_cleaned(tweet):
     for s in slices:
         text = text[:s['start']] + text[s['stop']:]
 
+    # Remove emojis from the string
+    try:
+        # UCS-4
+        highpoints = re.compile(u'[U00010000-U0010ffff]')
+    except re.error:
+        # UCS-2
+        highpoints = re.compile(u'[uD800-uDBFF][uDC00-uDFFF]')
+
+    re.sub(highpoints, '', text)
+
     return text
 
 
@@ -48,3 +58,10 @@ def get_text_sanitized(tweet):
                     .lstrip(string.punctuation).strip()
                      for w in get_text_cleaned(tweet).split()
                      if w.strip().rstrip(string.punctuation).strip()])
+
+def get_coords(tweet):
+    if tweet['coordinates']:
+        coords_list = tweet['coordinates']['coordinates']
+        return ', '.join(str(x) for x in coords_list)
+
+
